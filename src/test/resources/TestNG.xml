@@ -1,0 +1,21 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Suite1" verbose="1">
+    <parameter name="first-name" value="Cedric"/>
+    <listeners>
+
+        <listener class-name="com.jaca.ReportAdapterListener"></listener>
+
+    </listeners>
+    <test name="Sample">
+        <parameter name="param1" value="paramOneValue"/>
+        <parameter name="param2" value="paramTwoValue"/>
+        <classes>
+            <class name="ScreenShotsTests"/>
+        </classes>
+    </test>
+
+</suite>
+
+
+
