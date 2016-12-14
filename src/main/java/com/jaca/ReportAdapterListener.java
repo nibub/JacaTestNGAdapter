@@ -23,6 +23,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
+import java.util.logging.*;
+import java.util.logging.Formatter;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Created by nibu.baby on 5/24/2016.
@@ -30,25 +33,33 @@ import java.util.*;
 public class ReportAdapterListener implements IResultListener, ISuiteListener, IInvokedMethodListener {
 
     private static final String EXECUTION_ID;
+    private static final Logger LOGGER = Logger.getLogger(ReportAdapterListener.class.getName());
     private static String baseUrl;
     private static boolean isConfigured = false;
+    private static FileHandler fileHandler = null;
 
     static {
         UUID uuid = UUID.randomUUID();
         EXECUTION_ID = uuid.toString();
         try {
+            fileHandler = new FileHandler("JacaListnerLog.log");
             baseUrl = System.getProperty("JURL");
+
             if (baseUrl != null && !baseUrl.isEmpty()) {
                 isConfigured = true;
             }
         } catch (NullPointerException e) {
-            System.out.println("Jaca is not configured, Set reporting dashboard base url property-- 'jurl' ");
+            System.out.println("Jaca is not configured, Set reporting dashboard base url command line parameter  -- 'JURL' ");
+            LOGGER.info("Jaca is not configured, Set reporting dashboard base url command line parameter -- 'JURL' ");
+        } catch (SecurityException | IOException e) {
+            e.printStackTrace();
         }
 
     }
 
     @Inject
     WebDriver driver;
+    private Formatter simpleFormatter = null;
     private int suiteID;
     private int testsBuildID;
     private long suiteStartingTime;
@@ -57,11 +68,13 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
 
 
     public void onStart(ISuite iSuite) {
-
+        simpleFormatter = new SimpleFormatter();
+        fileHandler.setFormatter(simpleFormatter);
+        LOGGER.addHandler(fileHandler);
         if (isConfigured) {
+            LOGGER.info("Adding the suite info");
             suiteUpdate(iSuite);
         }
-
 
     }
 
@@ -96,6 +109,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             buildInfo.put("project", project);
             buildInfo.put("buildEnv", envName);
             buildInfo.put("buildNo", buildNo);
+            buildInfo.put("buildStatus", "InProgress");
 
 
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -121,6 +135,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 }
 
             } catch (IOException e) {
+                LOGGER.info("Issues while updating build info, Check the endpoint '" + baseUrl + "' , " + e.getMessage());
                 e.printStackTrace();
             }
 
@@ -148,10 +163,13 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     result.append(line);
                     suiteID = Integer.parseInt(result.toString());
                 }
+            } else {
+                LOGGER.info("Suite info post failed with status code :" + code);
             }
 
 
         } catch (IOException e) {
+            LOGGER.info("Issues while adding suite info" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -160,6 +178,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         if (isConfigured) {
             System.out.println("reporter suite finish");
             int numBerOfMethods = iSuite.getAllMethods().toArray().length;
+            LOGGER.info("Updating suite info");
             updateSuiteResults(iSuite);
         }
     }
@@ -290,10 +309,16 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             params = new StringEntity(json.toString());
             request.addHeader("content-type", "application/json");
             request.setEntity(params);
-            httpClient.execute(request);
+            HttpResponse response = httpClient.execute(request);
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                LOGGER.info("Suite info update failed with status code :" + response.getStatusLine().getStatusCode());
+            }
         } catch (UnsupportedEncodingException | ClientProtocolException e) {
+            LOGGER.info("Issues while updating suite info " + e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
+            LOGGER.info("Issues while updating suite info " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -349,12 +374,15 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             int status = iTestResult.getStatus();
             long timeTaken = startMilliseconds - endMilliseconds;
             String screenShot = null;
-            if (iTestResult.getStatus() == 2) {
+            if (iTestResult.getStatus() == ITestResult.FAILURE) {
                 Object currentClass = iTestResult.getInstance();
-                driver = ((Base) currentClass).getDriver();
-                screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                if (currentClass instanceof JacaBase) {
+                    driver = ((JacaBase) currentClass).getDriver();
+                    screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                } else {
+                    LOGGER.info("Unable to capture failure screen shot, driver object info should be available (implement JacaBase Interface)");
+                }
             }
-
 
             long timeStamp = Instant.now().toEpochMilli();
             try {
@@ -409,12 +437,16 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     while ((line = rd.readLine()) != null) {
                         result.append(line);
                     }
+                } else {
+                    LOGGER.info("Scenario update calls failed with status code :" + code);
                 }
 
 
             } catch (UnsupportedEncodingException | ClientProtocolException e) {
+                LOGGER.info("Issues while updating test case  infos " + e.getMessage());
                 e.printStackTrace();
             } catch (IOException e) {
+                LOGGER.info("Issues while updating test case  infos " + e.getMessage());
                 e.printStackTrace();
             }
 
