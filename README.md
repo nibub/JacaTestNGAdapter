@@ -1,2 +1,1 @@
 # JacaTestNGAdapter
-TestNGAdapter
