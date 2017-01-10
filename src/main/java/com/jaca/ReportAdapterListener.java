@@ -25,8 +25,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
-import java.util.logging.*;
+import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
+import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 /**
@@ -46,12 +47,9 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         try {
             fileHandler = new FileHandler("JacaListnerLog.log");
             baseUrl = System.getProperty("JURL");
-
             if (baseUrl != null && !baseUrl.isEmpty()) {
                 isConfigured = true;
-            }
-            else
-            {
+            } else {
                 LOGGER.info("Jaca is not configured, Set reporting dashboard base url command line parameter -- 'JURL' ");
             }
         } catch (NullPointerException e) {
@@ -73,6 +71,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     private boolean isBuildInfoUpdated;
     private int buildNo;
     private String jobName;
+    private Map<String, Integer> suiteMap = new HashMap<String, Integer>();
 
 
     public void onStart(ISuite iSuite) {
@@ -99,16 +98,15 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         json.put("executionID", EXECUTION_ID);
         json.put("executionDate", Instant.now().toEpochMilli());
         json.put("status", "InProgress");
-        json.put("intSize",suiteSize);
+        json.put("intSize", suiteSize);
 
-        int buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
+        buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
         int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
         String buildUrl = System.getenv("BUILD_URL");
-         jobName = System.getenv("JOB_NAME");
+        jobName = System.getenv("JOB_NAME");
         String envName = System.getProperty("env");
         String project = System.getProperty("project");
         System.out.println("Environment " + envName);
-
 
         if (!isBuildInfoUpdated) {
 
@@ -173,6 +171,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 while ((line = rd.readLine()) != null) {
                     result.append(line);
                     suiteID = Integer.parseInt(result.toString());
+                    suiteMap.put(name, suiteID);
                 }
             } else {
                 LOGGER.info("Suite info post failed with status code :" + code);
@@ -209,8 +208,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     public void onTestStart(ITestResult iTestResult) {
         iTestResult.getName();
         iTestResult.getTestName();
-
-    }
+   }
 
     public void onTestSuccess(ITestResult iTestResult) {
         if (isConfigured) {
@@ -309,9 +307,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 ja.put(tagsInfo);
             }
 
-
             json.put("tagsInfo", ja);
-
             HttpClient httpClient = HttpClientBuilder.create().build();
             String url = baseUrl + "/suite/" + String.valueOf(suiteID);
             HttpPut request = new HttpPut(url);
@@ -344,88 +340,92 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         String osName = null;
         String osVersion = null;
         String screenShot = null;
-        String browserVersion= null;
+        String browserVersion = null;
         boolean platformInfoCaptured = false;
+        String[] parameterValues = null;
 
         if (iTestResult.getMethod().isTest()) {
             try {
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-            //get current date time with Date()
-            Date date = new Date();
-            String testName = iTestResult.getName();
-            iTestResult.getAttributeNames();
-            boolean isTestParametrized = false;
-            String parameterValues = "";
-            String testID = "";
-            if (iTestResult.getMethod().getConstructorOrMethod().getMethod().isAnnotationPresent(TestAnnotations.class)) {
-                testID = iTestResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestAnnotations.class).testID();
-            }
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+                //get current date time with Date()
+                Date date = new Date();
+                String testName = iTestResult.getName();
+                iTestResult.getAttributeNames();
+                boolean isTestParametrized = false;
 
-            if (iTestResult.getParameters().length > 0) {
+                String testID = "";
+                if (iTestResult.getMethod().getConstructorOrMethod().getMethod().isAnnotationPresent(TestAnnotations.class)) {
+                    testID = iTestResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestAnnotations.class).testID();
+                }
+
+            /*if (iTestResult.getParameters().length > 0) {
                 isTestParametrized = true;
-                parameterValues = Arrays.toString(iTestResult.getParameters());
-            }
-            String suiteName = iTestResult.getTestContext().getSuite().getName();
-            String description = iTestResult.getMethod().getDescription();
+                parameterValues = (String[])iTestResult.getParameters();
 
-            String dependsOn = Arrays.toString(iTestResult.getMethod().getMethodsDependedUpon());
+            }*/
+                String suiteName = iTestResult.getTestContext().getSuite().getName();
+                String description = iTestResult.getMethod().getDescription();
 
-            int invocationCount = iTestResult.getMethod().getCurrentInvocationCount();
-            String[] groups = iTestResult.getMethod().getGroups();
-            String id = iTestResult.getMethod().getId();
-            String methodName = iTestResult.getMethod().getMethodName();
-            String className = iTestResult.getMethod().getTestClass().getName();
-            boolean b = iTestResult.getMethod().isTest();
-            long startMilliseconds = iTestResult.getEndMillis();
-            long endMilliseconds = iTestResult.getStartMillis();
+                String dependsOn = Arrays.toString(iTestResult.getMethod().getMethodsDependedUpon());
 
-            long totalTimeMilliseconds = startMilliseconds - endMilliseconds;
-            if (iTestResult.getThrowable() != null) {
-                final StringWriter sw = new StringWriter();
-                final PrintWriter pw = new PrintWriter(sw, true);
-                iTestResult.getThrowable().printStackTrace(pw);
-                errorMessage = sw.getBuffer().toString();
-                errorMsg = true;
-            }
-            iTestResult.getMethod().getSuccessPercentage();
+                int invocationCount = iTestResult.getMethod().getCurrentInvocationCount();
+                String[] groups = iTestResult.getMethod().getGroups();
+                String id = iTestResult.getMethod().getId();
+                String methodName = iTestResult.getMethod().getMethodName();
+                String className = iTestResult.getMethod().getTestClass().getName();
+                boolean b = iTestResult.getMethod().isTest();
+                long startMilliseconds = iTestResult.getEndMillis();
+                long endMilliseconds = iTestResult.getStartMillis();
 
-            List<String> reporterLogs = Reporter.getOutput(iTestResult);
-            int status = iTestResult.getStatus();
-            long timeTaken = startMilliseconds - endMilliseconds;
-
-            Object currentClass = iTestResult.getInstance();
-            if (currentClass instanceof JacaBase) {
-                driver = ((JacaBase) currentClass).getDriver();
-                if(driver instanceof RemoteWebDriver) {
-                    Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
-                    browserName = cap.getBrowserName().toLowerCase();
-                    osName = cap.getPlatform().toString();
-                    browserVersion = cap.getVersion().toString();
-                    currentUrl = driver.getCurrentUrl();
-                    platformInfoCaptured = true;
+                long totalTimeMilliseconds = startMilliseconds - endMilliseconds;
+                if (iTestResult.getThrowable() != null) {
+                    final StringWriter sw = new StringWriter();
+                    final PrintWriter pw = new PrintWriter(sw, true);
+                    iTestResult.getThrowable().printStackTrace(pw);
+                    errorMessage = sw.getBuffer().toString();
+                    errorMsg = true;
                 }
-                else
-                {
-                    LOGGER.info("Unable to find Remote Webdriver instance, Verify the driver implementation" );
-                }
-            } else {
-                LOGGER.info("Unable to capture driver info, driver object info should be available (implement JacaBase Interface)");
-            }
+                iTestResult.getMethod().getSuccessPercentage();
 
-            if (iTestResult.getStatus() == ITestResult.FAILURE) {
+                List<String> reporterLogs = Reporter.getOutput(iTestResult);
+                int status = iTestResult.getStatus();
+                long timeTaken = startMilliseconds - endMilliseconds;
+
+                Object currentClass = iTestResult.getInstance();
                 if (currentClass instanceof JacaBase) {
-                    screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
-                } else {
-                    LOGGER.info("Unable to capture failure screen shot, driver object info should be available (implement JacaBase Interface)");
-                }
-            }
+                    driver = ((JacaBase) currentClass).getDriver();
+                    if (driver instanceof RemoteWebDriver) {
 
-            long timeStamp = Instant.now().toEpochMilli();
+                        Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
+                        browserName = cap.getBrowserName().toLowerCase();
+                        osName = cap.getPlatform().toString();
+                        browserVersion = cap.getVersion().toString();
+                        try {
+                            currentUrl = driver.getCurrentUrl();
+                        } catch (Exception e) {
+                            LOGGER.info("Unable to capture the Driver url, Check the execution conditions,Browser might have closed/not launched");
+                        }
+                        platformInfoCaptured = true;
+                    } else {
+                        LOGGER.info("Unable to find Remote Webdriver instance, Verify the driver implementation");
+                    }
+                } else {
+                    LOGGER.info("Unable to capture driver info, driver object info should be available (implement JacaBase Interface)");
+                }
+
+                if (iTestResult.getStatus() == ITestResult.FAILURE) {
+                    if (currentClass instanceof JacaBase) {
+                        screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                    } else {
+                        LOGGER.info("Unable to capture failure screen shot, driver object info should be available (implement JacaBase Interface)");
+                    }
+                }
+
+                long timeStamp = Instant.now().toEpochMilli();
 
                 JSONObject json = new JSONObject();
-
                 json.put("testName", testName);
-                json.put("suiteID", suiteID);
+                json.put("suiteID", suiteMap.get(suiteName));
                 json.put("description", description);
                 json.put("status", status);
                 json.put("className", className);
@@ -435,22 +435,22 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 json.put("timeTaken", timeTaken);
                 json.put("suiteName", suiteName);
                 json.put("groupTags", groups);
-                json.put("parametrized", isTestParametrized);
+//                json.put("parametrized", isTestParametrized);
                 json.put("reporterLogs", reporterLogs);
                 json.put("testID", testID);
                 json.put("JobName", jobName);
-                json.put("buildJobName",jobName);
+                json.put("buildJobName", jobName);
                 json.put("buildNo", buildNo);
                 json.put("runnerType", 1);
                 if (platformInfoCaptured) {
-                    json.put("platFormInfo", osName );
+                    json.put("platFormInfo", osName);
                     json.put("browserType", browserName);
-                    json.put("browserVersion",browserVersion);
+                    json.put("browserVersion", browserVersion);
                 }
 
-                if (isTestParametrized) {
+                /*if (isTestParametrized) {
                     json.put("tcParameters", parameterValues);
-                }
+                }*/
 
 
                 if (screenShot != null) {
@@ -465,10 +465,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                         json.put("currentUrl", currentUrl);
                     }
                 }
-
                 json.put("screenCaptured", isScreenCaptured);
-
-
                 HttpClient httpClient = HttpClientBuilder.create().build();
                 HttpPost request = new HttpPost(baseUrl + "/scenario");
                 StringEntity params = null;
@@ -490,16 +487,13 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     LOGGER.info("Scenario update calls failed with status code :" + code);
                 }
 
-
             } catch (UnsupportedEncodingException | ClientProtocolException e) {
                 LOGGER.info("Issues while updating test case details " + e.getMessage());
                 e.printStackTrace();
             } catch (IOException e) {
                 LOGGER.info("Issues while updating test case details " + e.getMessage());
                 e.printStackTrace();
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 LOGGER.info("Unable to proceed Update " + e.getMessage());
                 e.printStackTrace();
             }
@@ -508,7 +502,6 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     }
 
     public void beforeInvocation(IInvokedMethod iInvokedMethod, ITestResult iTestResult) {
-
     }
 
     public void afterInvocation(IInvokedMethod iInvokedMethod, ITestResult iTestResult) {
