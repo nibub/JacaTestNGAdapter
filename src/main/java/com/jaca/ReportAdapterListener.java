@@ -419,7 +419,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
 
                         Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
                         System.out.println("Browser name:"+cap.getBrowserName());
-//                        browserName = cap.getBrowserName().toLowerCase();
+                        browserName = cap.getBrowserName().toLowerCase();
                         osName = cap.getPlatform().toString();
                         browserVersion = cap.getVersion().toString();
                         try {
