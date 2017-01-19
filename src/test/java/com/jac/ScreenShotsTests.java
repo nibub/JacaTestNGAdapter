@@ -1,6 +1,10 @@
+package com.jac;
+
+import com.jac.TestBase;
 import com.jaca.TestAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -14,26 +18,32 @@ public class ScreenShotsTests extends TestBase {
 
     WebDriver driver;
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setup() {
         driver = new FirefoxDriver();
         super.driver = driver;
         System.out.println("In setup method");
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     public void tearDown() {
         driver.close();
         System.out.println("In teardown method");
     }
 
-    @Test(groups = {"Smoke", "Web"}, description = "Screen test one")
+    @Test(groups = "Smoke", description = "Screen test one")
     @TestAnnotations(testID = "SRNT001")
     public void testMethodOne() throws InterruptedException {
         driver.get("http://www.google.com");
-        driver.findElement(By.name("q")).sendKeys("Screen test one");
+//        driver.findElement(By.name("uiiuiui")).sendKeys("Screen test one");
+        sampleSupport(driver);
         Thread.sleep(500);
         Assert.fail("Failed the test");
+    }
+
+    public void sampleSupport(WebDriver driverElement)
+    {
+        driverElement.findElement(By.name("uiiuiui")).sendKeys("Screen test one");
     }
 
     @Test(groups = {"Smoke", "Web"}, description = "Screen test two")
@@ -44,8 +54,7 @@ public class ScreenShotsTests extends TestBase {
         Thread.sleep(500);
         Assert.fail("Failed the test");
     }
-/*
-    @Test(groups = {"Smoke", "Web"}, description = "Screen test Three")
+   /* @Test(groups = {"Smoke", "Web"}, description = "Screen test Three")
     @TestAnnotations(testID = "SRNT003")
     public void testMethodThree() throws InterruptedException {
         driver.get("http://www.google.com");
@@ -90,16 +99,16 @@ public class ScreenShotsTests extends TestBase {
         Assert.fail("Failed the test");
     }
 
-    @Test(groups = {"Smoke", "Web"}, description = "Screen test Eight")
+    @Test(groups = "Smoke", description = "Screen test Eight")
     @TestAnnotations(testID = "SRNT008")
     public void testMethodEight() throws InterruptedException {
         driver.get("http://www.google.com");
         driver.findElement(By.name("q")).sendKeys("Screen test EIGHT");
         Thread.sleep(500);
         Assert.fail("Failed the test");
-    }*/
+    }
 
-
+*/
 
 
 }
