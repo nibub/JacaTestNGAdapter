@@ -48,7 +48,6 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         try {
             fileHandler = new FileHandler("JacaListnerLog.log");
             baseUrl = System.getProperty("JURL");
-//            baseUrl="http://localhost:8283/";
             if (baseUrl != null && !baseUrl.isEmpty()) {
                 isConfigured = true;
             } else {
@@ -104,7 +103,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         json.put("intSize", suiteSize);
 
         buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
-//        int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
+        int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
         String buildUrl = System.getenv("BUILD_URL");
         jobName = System.getenv("JOB_NAME");
 //        basePackName ="com.jac";
@@ -112,10 +111,6 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         String envName = System.getProperty("env");
         String project = System.getProperty("project");
         System.out.println("Environment " + envName);
-
-      /*  jobName = "SampleJob_MBT_1";
-        buildNo = 3;
-        String buildUrl = "www.url.com";*/
 
 
         if (!isBuildInfoUpdated) {
@@ -218,10 +213,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     public void onTestStart(ITestResult iTestResult) {
         iTestResult.getName();
         iTestResult.getTestName();
-//        iTestResult.setAttribute("WebDriver", this.driver);
-
-
-    }
+   }
 
     public void onTestSuccess(ITestResult iTestResult) {
         if (isConfigured) {
@@ -273,7 +265,6 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             numberOfPassedTest += testContext.getPassedTests().size();
             int skippedConfig = testContext.getSkippedConfigurations().size();
             int failedConfig = testContext.getFailedConfigurations().size();
-//             totalTests =numberOfFailedTests+ numberOfSkippedTest+numberOfPassedTest;
             String startDate = testContext.getStartDate().toString();
             testContext.getEndDate();
             Set<ITestResult> iTResults = testContext.getFailedTests().getAllResults();
