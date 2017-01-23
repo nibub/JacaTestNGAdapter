@@ -39,7 +39,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     private static final String EXECUTION_ID;
     private static final Logger LOGGER = Logger.getLogger(ReportAdapterListener.class.getName());
     private static String baseUrl;
-    private static boolean isConfigured = true;
+    private static boolean isConfigured = false;
     private static FileHandler fileHandler = null;
 
     static {
