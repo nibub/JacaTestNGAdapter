@@ -8,13 +8,13 @@
     <artifactId>jaca.testngAdapter</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <repositories>
+   <!-- <repositories>
         <repository>
             <id>central</id>
             <name>bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>
-    </repositories>
+    </repositories>-->
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -29,13 +29,13 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
-                <!--<suiteXmlFiles>
-                    &lt;!&ndash;<suiteXmlFile>src/test/resources/TestNG.xml</suiteXmlFile>&ndash;&gt;
+                <suiteXmlFiles>
+                    <!--<suiteXmlFile>src/test/resources/TestNG.xml</suiteXmlFile>-->
                     <suiteXmlFile>${suiteXmlFile}</suiteXmlFile>
                 </suiteXmlFiles>
 
                         <testFailureIgnore>true</testFailureIgnore>
--->
+
                 </configuration>
             </plugin>
             <plugin>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.9.4</version>
+            <version>6.13.1</version>
             <!--<scope>test</scope>-->
         </dependency>
         <dependency>

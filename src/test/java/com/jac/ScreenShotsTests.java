@@ -5,6 +5,7 @@ import com.jaca.TestAnnotations;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -20,7 +21,9 @@ public class ScreenShotsTests extends TestBase {
 
     @BeforeMethod(alwaysRun = true)
     public void setup() {
-        driver = new FirefoxDriver();
+//        driver = new FirefoxDriver();
+        System.setProperty("webdriver.chrome.driver","drivers/chromedriver.exe");
+        driver= new ChromeDriver();
         super.driver = driver;
         System.out.println("In setup method");
     }

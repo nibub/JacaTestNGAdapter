@@ -29,7 +29,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-import java.util.stream.Stream;
 
 /**
  * Created by nibu.baby on 5/24/2016.
@@ -39,7 +38,8 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     private static final String EXECUTION_ID;
     private static final Logger LOGGER = Logger.getLogger(ReportAdapterListener.class.getName());
     private static String baseUrl;
-    private static boolean isConfigured = true;
+    private static boolean isConfigured = false;
+    private static boolean isExtraInfoUpdated=true;
     private static FileHandler fileHandler = null;
 
     static {
@@ -47,8 +47,8 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         EXECUTION_ID = uuid.toString();
         try {
             fileHandler = new FileHandler("JacaListnerLog.log");
-            baseUrl = System.getProperty("JURL");
-//            baseUrl="http://localhost:8283/";
+//            baseUrl = System.getProperty("JURL");
+            baseUrl="http://localhost:8080/";
             if (baseUrl != null && !baseUrl.isEmpty()) {
                 isConfigured = true;
             } else {
@@ -74,7 +74,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
     private int buildNo;
     private String jobName;
     private Map<String, Integer> suiteMap = new HashMap<String, Integer>();
-    private String basePackName =null;
+    private String basePackName = null;
 
 
     public void onStart(ISuite iSuite) {
@@ -103,19 +103,23 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         json.put("status", "InProgress");
         json.put("intSize", suiteSize);
 
-        buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
+//        buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
 //        int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
-        String buildUrl = System.getenv("BUILD_URL");
-        jobName = System.getenv("JOB_NAME");
-//        basePackName ="com.jac";
-        basePackName = System.getProperty("JBASE");
-        String envName = System.getProperty("env");
-        String project = System.getProperty("project");
-        System.out.println("Environment " + envName);
+//        String buildUrl = System.getenv("BUILD_URL");
+//        jobName = System.getenv("JOB_NAME");
+//        basePackName = System.getProperty("JBASE");
+//        String envName = System.getProperty("env");
+//        String project = System.getProperty("project");
+//        System.out.println("Environment " + envName);
 
-      /*  jobName = "SampleJob_MBT_1";
-        buildNo = 3;
-        String buildUrl = "www.url.com";*/
+       /*Testing information*/
+        jobName = "SampleJob_V2_One";
+        buildNo = 1;
+        String buildUrl = "www.url.com";
+        basePackName ="com.jac";
+        String envName = "QA Env";
+        String project =" V2 App";
+        /**********/
 
 
         if (!isBuildInfoUpdated) {
@@ -129,6 +133,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             buildInfo.put("buildEnv", envName);
             buildInfo.put("buildNo", buildNo);
             buildInfo.put("buildStatus", "InProgress");
+            buildInfo.put("runnerType", 1);
 
 
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -200,6 +205,14 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
             int numBerOfMethods = iSuite.getAllMethods().toArray().length;
             LOGGER.info("Updating suite info");
             updateSuiteResults(iSuite);
+            /*AdditionalInfo suiteInfo = new AdditionalInfo();
+            if (!suiteInfo.getInfoMap().isEmpty()) {
+                ///need to add
+                suiteInfo.getInfoMap().forEach((k, v) -> {
+                    addAdditionalExecInfo(k, v);
+                });
+            }*/
+
         }
     }
 
@@ -357,9 +370,9 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         String browserVersion = null;
         boolean platformInfoCaptured = false;
         String[] parameterValues = null;
-        String exType=null;
-        String exClassName= null;
-        String exMethodName= null;
+        String exType = null;
+        String exClassName = null;
+        String exMethodName = null;
 
         if (iTestResult.getMethod().isTest()) {
             try {
@@ -371,8 +384,10 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 boolean isTestParametrized = false;
 
                 String testID = "";
+                int priority=0 ;
                 if (iTestResult.getMethod().getConstructorOrMethod().getMethod().isAnnotationPresent(TestAnnotations.class)) {
                     testID = iTestResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestAnnotations.class).testID();
+                    priority =iTestResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestAnnotations.class).priority();
                 }
 
             /*if (iTestResult.getParameters().length > 0) {
@@ -400,16 +415,15 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     final PrintWriter pw = new PrintWriter(sw, true);
                     iTestResult.getThrowable().printStackTrace(pw);
                     iTestResult.getThrowable().getStackTrace();
-                    exType=iTestResult.getThrowable().getClass().getSimpleName();
+                    exType = iTestResult.getThrowable().getClass().getSimpleName();
                     errorMessage = sw.getBuffer().toString();
-                    if(basePackName!=null) {
+                    if (basePackName != null) {
 //                    Stream<StackTraceElement > str  = Arrays.stream(iTestResult.getThrowable().getStackTrace()).filter(item->item.getClassName().startsWith(""));
                         Object[] str = Arrays.stream(iTestResult.getThrowable().getStackTrace()).filter(item -> item.getClassName().startsWith(basePackName)).toArray();
-                        if(str.length>0)
-                        {
-                            StackTraceElement element = (StackTraceElement)str[0];
-                            exClassName= element.getClassName();
-                            exMethodName= element.getMethodName();
+                        if (str.length > 0) {
+                            StackTraceElement element = (StackTraceElement) str[0];
+                            exClassName = element.getClassName();
+                            exMethodName = element.getMethodName();
                             element.getLineNumber();
                         }
                     }
@@ -427,8 +441,8 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     if (driver instanceof RemoteWebDriver) {
 
                         Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
-                        System.out.println("Browser name:"+cap.getBrowserName());
-//                        browserName = cap.getBrowserName().toLowerCase();
+                        System.out.println("Browser name:" + cap.getBrowserName());
+                        browserName = cap.getBrowserName().toLowerCase();
                         osName = cap.getPlatform().toString();
                         browserVersion = cap.getVersion().toString();
                         try {
@@ -444,13 +458,22 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     LOGGER.info("Unable to capture driver info, driver object info should be available (implement JacaBase Interface)");
                 }
 
-                if (iTestResult.getStatus() == ITestResult.FAILURE) {
-                    if (currentClass instanceof JacaBase) {
-                        screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
-                    } else {
-                        LOGGER.info("Unable to capture failure screen shot, driver object info should be available (implement JacaBase Interface)");
+
+
+                    if (iTestResult.getStatus() == ITestResult.FAILURE) {
+                        if (currentClass instanceof JacaBase) {
+                            try {
+                            screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+                            }
+                            catch (Exception e) {
+                                LOGGER.info("Unable to capture screen shot" + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        } else {
+                            LOGGER.info("Unable to capture failure screen shot, driver object info should be available (implement JacaBase Interface)");
+                        }
                     }
-                }
+
 
                 long timeStamp = Instant.now().toEpochMilli();
 
@@ -469,6 +492,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
 //                json.put("parametrized", isTestParametrized);
                 json.put("reporterLogs", reporterLogs);
                 json.put("testID", testID);
+                json.put("tcPriority", priority);
                 json.put("JobName", jobName);
                 json.put("buildJobName", jobName);
                 json.put("buildNo", buildNo);
@@ -495,9 +519,9 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                     if (platformInfoCaptured) {
                         json.put("currentUrl", currentUrl);
                     }
-                    json.put("exType",exType);
-                    json.put("exMethodName",exMethodName);
-                    json.put("exClassName",exClassName);
+                    json.put("exType", exType);
+                    json.put("exMethodName", exMethodName);
+                    json.put("exClassName", exClassName);
                 }
                 json.put("screenCaptured", isScreenCaptured);
                 HttpClient httpClient = HttpClientBuilder.create().build();
@@ -587,6 +611,35 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                 }
 
             }
+        }
+
+    }
+
+    protected static void addAdditionalExecInfo(String key, String value) {
+
+        JSONObject suiteInfo = new JSONObject();
+        suiteInfo.put("executionID", EXECUTION_ID);
+        suiteInfo.put("executionDate", Instant.now().toEpochMilli());
+        suiteInfo.put("infoKey", key);
+        suiteInfo.put("infoValue", value);
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPost request = new HttpPost(baseUrl + "/suiteinfo");
+        StringEntity params = null;
+
+        try {
+            params = new StringEntity(suiteInfo.toString());
+            request.addHeader("content-type", "application/json");
+            request.setEntity(params);
+            HttpResponse response = httpClient.execute(request);
+            int code = response.getStatusLine().getStatusCode();
+            StringBuffer result = new StringBuffer();
+            if (code != 200) {
+                LOGGER.info("Issues while updating Suite info, Check the endpoint ....");
+            }
+
+        } catch (IOException e) {
+            LOGGER.info("Issues while updating Suite info, Check the endpoint '" + baseUrl + "' , " + e.getMessage());
+            e.printStackTrace();
         }
 
     }

@@ -3,7 +3,7 @@
 <suite name="Suite1" verbose="1">
     <parameter name="first-name" value="Cedric"/>
     <listeners>
-
+        <!--<listener class-name="com.jaca.DummyListner"></listener>-->
         <listener class-name="com.jaca.ReportAdapterListener"></listener>
 
     </listeners>
@@ -11,10 +11,16 @@
         <parameter name="param1" value="paramOneValue"/>
         <parameter name="param2" value="paramTwoValue"/>
         <classes>
-            <class name="ScreenShotsTests"/>
+            <!--<class name="com.jac.ScreenShotsTests"/>-->
+            <!--<class name="ParametersTests"/>-->
         </classes>
     </test>
 
+    <test name="Reg">
+        <classes>
+            <class name="SecondTest"/>
+        </classes>
+    </test>
 </suite>
 
 

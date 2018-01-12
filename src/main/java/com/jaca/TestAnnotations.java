@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TestAnnotations {
     String testID();
+    int priority () default 0;
 }
