@@ -7,18 +7,18 @@
         <listener class-name="com.jaca.ReportAdapterListener"></listener>
 
     </listeners>
-    <test name="Sample">
+   <!-- <test name="Sample">
         <parameter name="param1" value="paramOneValue"/>
         <parameter name="param2" value="paramTwoValue"/>
         <classes>
-            <!--<class name="com.jac.ScreenShotsTests"/>-->
-            <!--<class name="ParametersTests"/>-->
+            &lt;!&ndash;<class name="com.jac.ScreenShotsTests"/>&ndash;&gt;
+            &lt;!&ndash;<class name="ParametersTests"/>&ndash;&gt;
         </classes>
-    </test>
+    </test>-->
 
     <test name="Reg">
         <classes>
-            <class name="SecondTest"/>
+         <!--   <class name="SecondTest"/>-->
         </classes>
     </test>
 </suite>

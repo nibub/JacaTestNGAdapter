@@ -10,10 +10,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.*;
 import org.testng.internal.IResultListener;
@@ -47,9 +44,10 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         EXECUTION_ID = uuid.toString();
         try {
             fileHandler = new FileHandler("JacaListnerLog.log");
-//            baseUrl = System.getProperty("JURL");
-            baseUrl="http://localhost:8080/";
+            baseUrl = System.getProperty("JURL");
+//            baseUrl="http://localhost:8080/";
             if (baseUrl != null && !baseUrl.isEmpty()) {
+                LOGGER.info("**Jaca Adapter v2.1**");
                 isConfigured = true;
             } else {
                 LOGGER.info("Jaca is not configured, Set reporting dashboard base url command line parameter -- 'JURL' ");
@@ -103,22 +101,22 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         json.put("status", "InProgress");
         json.put("intSize", suiteSize);
 
-//        buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
-//        int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
-//        String buildUrl = System.getenv("BUILD_URL");
-//        jobName = System.getenv("JOB_NAME");
-//        basePackName = System.getProperty("JBASE");
-//        String envName = System.getProperty("env");
-//        String project = System.getProperty("project");
-//        System.out.println("Environment " + envName);
+        buildNo = Integer.parseInt(System.getenv("BUILD_NUMBER"));
+        int buildID = Integer.parseInt(System.getenv("BUILD_ID"));
+        String buildUrl = System.getenv("BUILD_URL");
+        jobName = System.getenv("JOB_NAME");
+        basePackName = System.getProperty("JBASE");
+        String envName = System.getProperty("env");
+        String project = System.getProperty("project");
+        System.out.println("Environment " + envName);
 
        /*Testing information*/
-        jobName = "SampleJob_V2_One";
+        /*jobName = "SampleJob_V2_One";
         buildNo = 1;
         String buildUrl = "www.url.com";
         basePackName ="com.jac";
         String envName = "QA Env";
-        String project =" V2 App";
+        String project =" V2 App";*/
         /**********/
 
 
@@ -443,7 +441,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
                         Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
                         System.out.println("Browser name:" + cap.getBrowserName());
                         browserName = cap.getBrowserName().toLowerCase();
-                        osName = cap.getPlatform().toString();
+                        osName = cap.getPlatform().family().toString();
                         browserVersion = cap.getVersion().toString();
                         try {
                             currentUrl = driver.getCurrentUrl();
