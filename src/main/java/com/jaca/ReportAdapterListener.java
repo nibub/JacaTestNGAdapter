@@ -43,7 +43,7 @@ public class ReportAdapterListener implements IResultListener, ISuiteListener, I
         final UUID uuid = UUID.randomUUID();
         EXECUTION_ID = uuid.toString();
         try {
-            fileHandler = new FileHandler("JacaListnerLog.log");
+            fileHandler = new FileHandler("JacaTestNGAdapter.log");
             baseUrl = System.getProperty("JURL");
 //            baseUrl="http://localhost:8080/";
             if (baseUrl != null && !baseUrl.isEmpty()) {
