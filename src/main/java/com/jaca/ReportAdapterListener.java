@@ -446,16 +446,18 @@ public class ReportAdapterListener
 
         List<String> reporterLogs = Reporter.getOutput(iTestResult);
         if (iTestResult.getThrowable() != null) {
-          if (exClassName != null && exMethodName != null) {
+          String mesg = iTestResult.getThrowable().getMessage().toString();
+          reporterLogs.add("Test FAILED :: "+exType+" @"+mesg);
+          /*if (exClassName != null && exMethodName != null) {
             reporterLogs.add(
                 "Test failed @ "
                     + exClassName
-                    + ", -->"
+                    + " -->"
                     + exMethodName
-                    + "(), @line number :"
+                    + "() @line number :"
                     + lineNumber);
-            reporterLogs.add("For more info, please look into error details");
-          }
+
+          }*/
         }
         int status = iTestResult.getStatus();
         long timeTaken = startMilliseconds - endMilliseconds;
