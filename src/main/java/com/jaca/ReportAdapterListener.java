@@ -160,7 +160,7 @@ public class ReportAdapterListener
             "Issues while updating build info, Check the endpoint '"
                 + baseUrl
                 + "' , "
-                + e.getMessage());
+                + e.toString());
         e.printStackTrace();
       }
 
@@ -193,7 +193,7 @@ public class ReportAdapterListener
       }
 
     } catch (IOException e) {
-      LOGGER.info("Issues while adding suite info" + e.getMessage());
+      LOGGER.info("Issues while adding suite info" + e.toString());
       e.printStackTrace();
     }
   }
@@ -341,10 +341,10 @@ public class ReportAdapterListener
                 + response.getStatusLine().getStatusCode());
       }
     } catch (UnsupportedEncodingException | ClientProtocolException e) {
-      LOGGER.info("Issues while updating suite info " + e.getMessage());
+      LOGGER.info("Issues while updating suite info " + e.toString());
       e.printStackTrace();
     } catch (IOException e) {
-      LOGGER.info("Issues while updating suite info " + e.getMessage());
+      LOGGER.info("Issues while updating suite info " + e.toString());
       e.printStackTrace();
     }
   }
@@ -446,8 +446,15 @@ public class ReportAdapterListener
 
         List<String> reporterLogs = Reporter.getOutput(iTestResult);
         if (iTestResult.getThrowable() != null) {
-          String mesg = iTestResult.getThrowable().getMessage().toString();
-          reporterLogs.add("Test FAILED :: "+exType+" @"+mesg);
+            try {
+                String mesg = iTestResult.getThrowable().getMessage();
+                reporterLogs.add("Test FAILED :: " + exType + " @" + mesg);
+            }
+            catch (Exception e)
+            {
+                reporterLogs.add("Test FAILED :: exception details as  "+e.toString().substring(0,100));
+                LOGGER.info("Error while capturing info about exception"+e.toString());
+            }
           /*if (exClassName != null && exMethodName != null) {
             reporterLogs.add(
                 "Test failed @ "
@@ -493,7 +500,7 @@ public class ReportAdapterListener
             try {
               screenShot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
             } catch (Exception e) {
-              LOGGER.info("Unable to capture screen shot" + e.getMessage());
+              LOGGER.info("Unable to capture screen shot" + e.toString());
               e.printStackTrace();
             }
           } else {
@@ -572,13 +579,13 @@ public class ReportAdapterListener
         }
 
       } catch (UnsupportedEncodingException | ClientProtocolException e) {
-        LOGGER.info("Issues while updating test case details " + e.getMessage());
+        LOGGER.info("Issues while updating test case details " + e.toString());
         e.printStackTrace();
       } catch (IOException e) {
-        LOGGER.info("Issues while updating test case details " + e.getMessage());
+        LOGGER.info("Issues while updating test case details " + e.toString());
         e.printStackTrace();
       } catch (Exception e) {
-        LOGGER.info("Unable to proceed Update " + e.getMessage());
+        LOGGER.info("Unable to proceed Update " + e.toString());
         e.printStackTrace();
       }
     }
@@ -662,7 +669,7 @@ public class ReportAdapterListener
           "Issues while updating Suite info, Check the endpoint '"
               + baseUrl
               + "' , "
-              + e.getMessage());
+              + e.toString());
       e.printStackTrace();
     }
   }

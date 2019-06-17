@@ -6,7 +6,7 @@
 
     <groupId>org.jaca.testngAdapter</groupId>
     <artifactId>jaca.testngAdapter</artifactId>
-    <version>2.2</version>
+    <version>2.3</version>
 
    <!-- <repositories>
         <repository>
